@@ -1,1 +1,1 @@
-# AI-powered-quiz-generator
+# AI Quiz Generator
