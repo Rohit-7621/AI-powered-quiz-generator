@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Quiz Generator</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6fb;
+            color: #222;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 2px dashed #4f46e5;
+            padding: 35px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            margin-top: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #3730a3;
+        }
+
+        #status {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .question {
+            background: #f8f9ff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        .question h3 {
+            margin-bottom: 15px;
+        }
+
+        .option {
+            display: block;
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background: #eef2ff;
+        }
+
+        #quiz {
+            margin-top: 30px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="container">
+
+        <h1>AI Quiz Generator</h1>
+
+        <p class="subtitle">
+            Upload a PDF and let AI generate questions
+        </p>
+
+
+        <div class="upload-box">
+
+            <h3>Upload your PDF</h3>
+
+            <input
+                type="file"
+                id="pdfFile"
+                accept=".pdf"
+            >
+
+        </div>
+
+
+        <button onclick="generateQuiz()">
+            Generate Quiz
+        </button>
+
+
+        <div id="status"></div>
+
+
+        <div id="quiz"></div>
+
+    </div>
+
+
+    <script>
+
+        async function generateQuiz() {
+
+            const fileInput =
+                document.getElementById("pdfFile");
+
+            const status =
+                document.getElementById("status");
+
+            const quiz =
+                document.getElementById("quiz");
+
+
+            if (fileInput.files.length === 0) {
+
+                alert("Please select a PDF first.");
+
+                return;
+
+            }
+
+
+            const file =
+                fileInput.files[0];
+
+
+            const formData =
+                new FormData();
+
+            formData.append("pdf", file);
+
+
+            status.innerText =
+                "Generating questions...";
+
+
+            quiz.innerHTML = "";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/generate-quiz",
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(data.error);
+
+                }
+
+
+                displayQuiz(data.questions);
+
+
+                status.innerText =
+                    "Quiz generated successfully!";
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+                status.innerText =
+                    "Error: " + error.message;
+
+            }
+
+        }
+
+
+        function displayQuiz(questions) {
+
+            const quiz =
+                document.getElementById("quiz");
+
+
+            questions.forEach((q, index) => {
+
+                const questionDiv =
+                    document.createElement("div");
+
+                questionDiv.className =
+                    "question";
+
+
+                questionDiv.innerHTML = `
+
+                    <h3>
+                        ${index + 1}. ${q.question}
+                    </h3>
+
+                `;
+
+
+                q.options.forEach(option => {
+
+                    const label =
+                        document.createElement("label");
+
+                    label.className =
+                        "option";
+
+
+                    label.innerHTML = `
+
+                        <input
+                            type="radio"
+                            name="question${index}"
+                            value="${option}"
+                        >
+
+                        ${option}
+
+                    `;
+
+
+                    questionDiv.appendChild(label);
+
+                });
+
+
+                quiz.appendChild(questionDiv);
+
+            });
+
+        }
+
+    </script>
+
+</body>
+
+</html>
